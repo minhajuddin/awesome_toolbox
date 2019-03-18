@@ -23,7 +23,8 @@ defmodule AwesomeToolbox.MixProject do
   defp deps do
     [
       {:mint, ">= 0.0.0"},
-      {:castore, ">= 0.0.0"}
+      {:castore, ">= 0.0.0"},
+      {:jason, ">= 0.0.0"}
     ]
   end
 end

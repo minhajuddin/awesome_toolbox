@@ -1,36 +1,33 @@
 defmodule AwesomeToolbox.Github do
+  require Logger
+
+  @default_headers [{"authorization", "Bearer #{System.get_env("GITHUB_TOKEN")}"}]
+
   def zen do
-    # open a new http connection to api.github.com and get a handle to the connection struct
-    {:ok, conn} = Mint.HTTP.connect(_scheme = :https, _host = "api.github.com", _port = 443)
+    {:ok, resp} = HTTP.get("https://api.github.com/zen")
+    {:ok, resp.body}
+  end
 
-    # make a GET request to the `/zen` path using the above connection without any special headers
-    {:ok, conn, request_ref} =
-      Mint.HTTP.request(conn, _method = "GET", _path = "/zen", _headers = [])
+  def readme(repo_name) do
+    # make the request
+    with {:ok, %HTTP.Response{status_code: 200} = resp} <-
+           HTTP.get("https://api.github.com/repos/#{repo_name}/readme", @default_headers),
+         # decode json
+         {:ok, json} <- Jason.decode(resp.body),
+         {:ok, readme} <- Base.decode64(json["content"], ignore: :whitespace) do
+      {:ok, readme}
+    else
+      err -> {:error, err}
+    end
+  end
 
-    # receive and parse the response
-    receive do
-      message ->
-        # send received message to `Mint` to be parsed
-        {:ok, conn, responses} = Mint.HTTP.stream(conn, message)
-
-        for response <- responses do
-          case response do
-            {:status, ^request_ref, status_code} ->
-              IO.puts("> Response status code #{status_code}")
-
-            {:headers, ^request_ref, headers} ->
-              IO.puts("> Response headers: #{inspect(headers)}")
-
-            {:data, ^request_ref, data} ->
-              IO.puts("> Response body")
-              IO.puts(data)
-
-            {:done, ^request_ref} ->
-              IO.puts("> Response fully received")
-          end
-        end
-
-        Mint.HTTP.close(conn)
+  def repo_info(repo_name) do
+    with {:ok, %HTTP.Response{status_code: 200} = resp} <-
+           HTTP.get("https://api.github.com/repos/#{repo_name}", @default_headers),
+         {:ok, repo_info} <- Jason.decode(resp.body) do
+      {:ok, repo_info}
+    else
+      err -> {:error, err}
     end
   end
 end
