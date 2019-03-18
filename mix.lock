@@ -1,0 +1,4 @@
+%{
+  "castore": {:hex, :castore, "0.1.1", "a8905530209152ddb74989fa2a5bd4fa3a2d3ff5d15ad12578caa7460d807c8b", [:mix], [], "hexpm"},
+  "mint": {:hex, :mint, "0.1.0", "f5a82a909bb95a03222e0cfa5384c287f04c271fd2363e81323020cd33c70712", [:mix], [{:castore, "~> 0.1.0", [hex: :castore, repo: "hexpm", optional: true]}], "hexpm"},
+}
