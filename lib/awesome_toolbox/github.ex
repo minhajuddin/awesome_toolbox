@@ -1,66 +1,38 @@
 defmodule AwesomeToolbox.Github do
+  require Logger
+
   def zen do
     {:ok, resp} = HTTP.get("https://api.github.com/zen")
     {:ok, resp.body}
   end
 
-  def readme(repo_full_name) do
+  def readme(repo_name) do
     # make the request
-    {:ok, resp} = HTTP.get("https://api.github.com/zen")
-
-    # decode json
-    {:ok, json} = Jason.decode(resp.body)
-
-    cond do
-      resp.status > 400 -> {:error, json}
-      resp.headers
+    with {:ok, %HTTP.Response{status_code: 200} = resp} <-
+           HTTP.get("https://api.github.com/repos/#{repo_name}/readme"),
+         # decode json
+         {:ok, json} <- Jason.decode(resp.body),
+         {:ok, readme} <- Base.decode64(json["content"], ignore: :whitespace) do
+      {:ok, readme}
     end
-    # if the response has hit a rate limit return that
-
-
-
-    {:ok, conn} = Mint.HTTP.connect(:https, "api.github.com", 443)
-
-    {:ok, conn, request_ref} =
-      Mint.HTTP.request(conn, "GET", "/repos/#{repo_full_name}/readme", [
-        {"content-type", "application/json"}
-      ])
-
-    {:ok, status, conn, body} = recv_response(conn, request_ref)
-
-    json = Jason.decode!(body)
-
-    readme = Base.decode64!(json["content"], ignore: :whitespace)
-
-    Mint.HTTP.close(conn)
-    {:ok, readme}
   end
 
   @doc """
   Get the repo info for the given repo
   e.g
       iex> repo_info("minhajuddin/awesome_toolbox")
-      %{"stargazers_count" => 0, ...}
+      {:ok, %{"stargazers_count" => 0, ...}}
   """
-  def repo_info(repo_full_name) do
-    # create an HTTP connection
-    {:ok, conn} = Mint.HTTP.connect(:https, "api.github.com", 443)
-
-    # make a GET request to get the repo info
-    {:ok, conn, request_ref} =
-      Mint.HTTP.request(conn, "GET", "/repos/#{repo_full_name}", [
-        {"content-type", "application/json"}
-      ])
-
-    # read and parse the response
-    {:ok, conn, body} = recv_response(conn, request_ref)
-
-    # decode the JSON
-    json = Jason.decode!(body)
-
-    # close the HTTP connection
-    Mint.HTTP.close(conn)
-    {:ok, json}
+  def repo_info(repo_name) do
+    with {:ok, %HTTP.Response{status_code: 200} = resp} <-
+           HTTP.get("https://api.github.com/repos/#{repo_name}"),
+         {:ok, repo_info} <- Jason.decode(resp.body) do
+      {:ok, repo_info}
+    else
+      err ->
+        Logger.error("REPO_INFO_ERROR: #{inspect(err)}")
+        {:error, err}
+    end
   end
 
   defmodule HTTPResponse do

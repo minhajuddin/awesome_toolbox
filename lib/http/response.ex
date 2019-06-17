@@ -1,8 +1,6 @@
 defmodule HTTP.Response do
   defstruct status_code: nil, headers: nil, body: [], complete?: false
 
-  # @type t :: %__MODULE__{}
-  # @spec parse([], t()) :: t()
   def parse(mint_messages, request_ref, http_response \\ %__MODULE__{})
 
   def parse(

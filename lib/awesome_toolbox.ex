@@ -43,7 +43,6 @@ defmodule AwesomeToolbox do
          {:repo_info, {:ok, %{"stargazers_count" => stargazers_count}}} <-
            {:repo_info, Github.repo_info(repo_name)} do
       # append it to the link
-      IO.write(".")
 
       Regex.replace(
         ~r/(\(?https:\/\/github.com\/#{repo_name}\)?)/,

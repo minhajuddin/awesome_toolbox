@@ -1,4 +1,5 @@
 defmodule HTTP do
+  require Logger
   def get(uri, headers \\ []), do: request("GET", uri, headers)
 
   def request(method, uri, headers \\ [], body \\ [])
@@ -12,15 +13,13 @@ defmodule HTTP do
   def request(method, uri = %URI{}, headers, body)
       when is_list(headers) and method in ~w[GET POST PUT PATCH DELETE OPTIONS HEAD] do
     # TODO: spawn a new process per request so that the messages don't get intermingled
+
+    Logger.info("#{method} #{uri}")
     {:ok, conn} = Mint.HTTP.connect(scheme_atom(uri.scheme), uri.host, uri.port)
 
     {:ok, conn, request_ref} = Mint.HTTP.request(conn, method, path(uri), headers, body)
 
     {:ok, http_response = %HTTP.Response{}} = recv_response(conn, request_ref)
-
-    # json = Jason.decode!(body)
-
-    # readme = Base.decode64!(json["content"], ignore: :whitespace)
 
     Mint.HTTP.close(conn)
     {:ok, http_response}
