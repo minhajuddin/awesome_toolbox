@@ -36,7 +36,7 @@ defmodule AwesomeToolbox do
   end
 
   @github_repo_rx ~r/https:\/\/github.com\/(?<repo_name>[0-9a-zA-Z._-]+\/[0-9a-zA-Z._-]+)/
-  @star <<0x2B_50::utf8>>
+  @star ":star:"
   defp annotate_line(line) do
     # find the github repo link
     with %{"repo_name" => repo_name} <- Regex.named_captures(@github_repo_rx, line),
@@ -45,7 +45,7 @@ defmodule AwesomeToolbox do
            {:repo_info, Github.repo_info(repo_name)} do
       # append it to the link
       Regex.replace(
-        ~r/(\(?https:\/\/github.com\/#{repo_name}\)?)/,
+        ~r/(\(?https:\/\/github.com\/#{repo_name}\#?[0-9a-zA-Z._-]* *\)?)/,
         line,
         "\\1 (#{stargazers_count} #{@star})"
       )
